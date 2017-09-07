@@ -29,17 +29,6 @@ const genericError = () => ({
   message: 'Sorry'
 });
 
-
-/*passport.serializeUser(function(user, done) {
-  console.log('USER');
-  console.log(user);
-  done(null, user);
-});
-
-passport.deserializeUser(function(user, done) {
-  done(null, user);
-});*/
-
 passport.use(new SpotifyStrategy({
     clientID: '308232bf7c424d9e9761c63df9cba02c',
     clientSecret: '8aa3de7ee0d344d795206275626a92a5',
