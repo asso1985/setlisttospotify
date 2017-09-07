@@ -3,6 +3,7 @@ const setlistfm = require('setlistfm-js');
 const SpotifyWebApi = require('spotify-web-api-node');
 const passport = require('passport');
 const SpotifyStrategy = require('passport-spotify').Strategy;
+const _ = require('lodash');
 const app = express();
 
 app.use(require('express-session')({
@@ -25,9 +26,11 @@ const spotifyApi = new SpotifyWebApi({
   redirectUri : 'http://www.example.com/callback'
 });
 
-const genericError = () => ({
-  message: 'Sorry'
-});
+const genericError = () => {
+  return {
+    message: 'Sorry'
+  }
+};
 
 passport.use(new SpotifyStrategy({
     clientID: '308232bf7c424d9e9761c63df9cba02c',
@@ -57,10 +60,14 @@ app.get('/setlist/artist/:artistName', function (req, res) {
     artistName: req.params.artistName
   })
   .then(function(results) {
+    const list = _.filter(results.artist, function(a) { return a.tmid; });
+    results.artist = list;
     res.send(results);
   })
   .catch(function(error) {
-    res.send(genericError);
+    if (error) {
+      res.send(JSON.stringify(genericError()));
+    }
   });
 });
 
