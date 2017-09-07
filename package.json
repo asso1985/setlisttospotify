@@ -1,0 +1,31 @@
+{
+  "name": "index.js",
+  "version": "1.0.0",
+  "description": "API for setlists to playlists",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/asso1985/setlisttospotify.git"
+  },
+  "keywords": [
+    "node",
+    "vuejs"
+  ],
+  "author": "Omar assadi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/asso1985/setlisttospotify/issues"
+  },
+  "homepage": "https://github.com/asso1985/setlisttospotify#readme",
+  "dependencies": {
+    "express": "^4.15.4",
+    "express-session": "^1.15.5",
+    "passport": "^0.4.0",
+    "passport-spotify": "^0.3.1",
+    "setlistfm-js": "^1.0.1",
+    "spotify-web-api-node": "^2.5.0"
+  }
+}
