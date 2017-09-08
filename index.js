@@ -6,6 +6,9 @@ const SpotifyStrategy = require('passport-spotify').Strategy;
 const _ = require('lodash');
 const app = express();
 
+const BASE_URL = 'https://api-setlist-to-spotify.herokuapp.com';
+// const BASE_URL = 'http://localhost:3000';
+
 app.use(require('express-session')({
   secret: 'keyboard cat',
   resave: true,
@@ -35,7 +38,7 @@ const genericError = () => {
 passport.use(new SpotifyStrategy({
     clientID: '308232bf7c424d9e9761c63df9cba02c',
     clientSecret: '8aa3de7ee0d344d795206275626a92a5',
-    callbackURL: "http://localhost:3000/auth/spotify/callback"
+    callbackURL: BASE_URL + "/auth/spotify/callback"
   },
   function(accessToken, refreshToken, profile, done) {
     spotifyApi.setAccessToken(accessToken);
