@@ -6,7 +6,9 @@ const passport = require('passport');
 const SpotifyStrategy = require('passport-spotify').Strategy;
 const _ = require('lodash');
 const app = express();
-
+const bodyParser = require('body-parser');
+app.use(bodyParser.json()); // support json encoded bodies
+app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 const BASE_URL = 'https://api-setlist-to-spotify.herokuapp.com';
 // const BASE_URL = 'http://localhost:3000';
 
@@ -40,11 +42,11 @@ const genericError = () => {
   }
 };
 
+let expires_in = '';
+
 spotifyApi.clientCredentialsGrant()
   .then(function(data) {
-    console.log('The access token expires in ' + data.body['expires_in']);
-    console.log('The access token is ' + data.body['access_token']);
-
+    expires_in = data.body['expires_in'];
     // Save the access token so that it's used in future calls
     spotifyApi.setAccessToken(data.body['access_token']);
 
@@ -58,7 +60,6 @@ passport.use(new SpotifyStrategy({
     callbackURL: BASE_URL + "/auth/spotify/callback"
   },
   function(accessToken, refreshToken, profile, done) {
-    console.log(accessToken, refreshToken);
     spotifyApi.setAccessToken(accessToken);
     spotifyApi.setRefreshToken(refreshToken);
     process.nextTick(function () {
@@ -89,9 +90,7 @@ app.get('/auth/spotify',
 app.get('/auth/spotify/callback',
   passport.authenticate('spotify', {scope: ['playlist-modify-private', 'user-read-private'], showDialog: true}),
   function(req, res){
-    console.log(req.user);
-    //res.send();
-    res.redirect(BASE_FRONT_URL + '/#/auth/spotify');
+    res.redirect(BASE_FRONT_URL + '/#/auth/spotify?token='+req.user.accessToken);
   });
 
 
@@ -145,31 +144,30 @@ app.get('/spotify/search/track/:artistName/:trackName', function (req, res) {
     });
 });
 
-app.get('/spotify/save-playlist', function (req, res) {
-	// Create a private playlist
-	const playlistName = req.query.playlistName;
-	const userName = '1167004262';
-	// const tracks = req.body.tracks;
-  const tracks = [];
-	const addToplaylist = (playlistId) => {
-		spotifyApi.addTracksToPlaylist(
-			userName,
-			playlistId,
-			[tracks])
-		  .then(function(data) {
-		    res.send({success:'OK', data : {"playlistName" : playlistName}})
-		  }, function(err) {
-		  	res.send({success:'KO'})
-		  });
-	}
+app.post('/spotify/save-playlist', function (req, res) {
+  const userName = req.body.userName;
+  const playlistName = req.body.playlistName;
+  const tracks = req.body.tracks;
 
-	spotifyApi.createPlaylist(userName, playlistName, { 'public' : false })
-	  .then(function(data) {
-	    console.log('Created playlist!');
-	    addToplaylist(data.body.id)
-	  }, function(err) {
-	    console.log('Something went wrong creating playlist!', err);
-	  });
+  const addToplaylist = (playlistId) => {
+    spotifyApi.addTracksToPlaylist(
+      userName,
+      playlistId,
+      tracks)
+      .then(function(data) {
+        res.send({success:'OK', data : {"playlistName" : playlistName}})
+      }, function(err) {
+        res.send({success:'KO'})
+      });
+  }
+
+  spotifyApi.createPlaylist(userName, playlistName, { 'public' : false })
+    .then(function(data) {
+      console.log('Created playlist!');
+      addToplaylist(data.body.id)
+    }, function(err) {
+      console.log('Something went wrong creating playlist!', err);
+    });
 });
 
 app.listen(process.env.PORT || 3000, function(){
