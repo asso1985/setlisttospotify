@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const setlistfm = require('setlistfm-js');
 const SpotifyWebApi = require('spotify-web-api-node');
 const passport = require('passport');
@@ -8,6 +9,9 @@ const app = express();
 
 const BASE_URL = 'https://api-setlist-to-spotify.herokuapp.com';
 // const BASE_URL = 'http://localhost:3000';
+
+const BASE_FRONT_URL = 'https://frontend-setlist-to-spotify.herokuapp.com';
+// const BASE_FRONT_URL = 'http://localhost:8080';
 
 app.use(require('express-session')({
   secret: 'keyboard cat',
@@ -26,14 +30,27 @@ const setlistfmClient = new setlistfm({
 const spotifyApi = new SpotifyWebApi({
   clientId : '308232bf7c424d9e9761c63df9cba02c',
   clientSecret : '8aa3de7ee0d344d795206275626a92a5',
-  redirectUri : 'http://www.example.com/callback'
+  redirectUri : BASE_URL + 'auth/spotify'
 });
 
 const genericError = () => {
   return {
+    error : true,
     message: 'Sorry'
   }
 };
+
+spotifyApi.clientCredentialsGrant()
+  .then(function(data) {
+    console.log('The access token expires in ' + data.body['expires_in']);
+    console.log('The access token is ' + data.body['access_token']);
+
+    // Save the access token so that it's used in future calls
+    spotifyApi.setAccessToken(data.body['access_token']);
+
+  }, function(err) {
+    console.log('Something went wrong when retrieving an access token', err.message);
+  });
 
 passport.use(new SpotifyStrategy({
     clientID: '308232bf7c424d9e9761c63df9cba02c',
@@ -41,11 +58,29 @@ passport.use(new SpotifyStrategy({
     callbackURL: BASE_URL + "/auth/spotify/callback"
   },
   function(accessToken, refreshToken, profile, done) {
+    console.log(accessToken, refreshToken);
     spotifyApi.setAccessToken(accessToken);
-    done();
+    spotifyApi.setRefreshToken(refreshToken);
+    process.nextTick(function () {
+      const data = {
+        profile : profile,
+        accessToken: accessToken,
+        refreshToken: refreshToken
+      }
+      return done(null, data);
+    });
   }
 ));
 
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function(obj, done) {
+  done(null, obj);
+});
+
+app.use(cors());
 
 app.get('/auth/spotify',
   passport.authenticate('spotify', {scope: ['playlist-modify-private', 'user-read-private'], showDialog: true}),
@@ -53,8 +88,10 @@ app.get('/auth/spotify',
 
 app.get('/auth/spotify/callback',
   passport.authenticate('spotify', {scope: ['playlist-modify-private', 'user-read-private'], showDialog: true}),
-  function(req, res) {
-    res.redirect('/');
+  function(req, res){
+    console.log(req.user);
+    //res.send();
+    res.redirect(BASE_FRONT_URL + '/#/auth/spotify');
   });
 
 
@@ -87,15 +124,24 @@ app.get('/setlist/search/:artistId', function (req, res) {
   });
 });
 
+app.get('/spotify/artist/:artistId', function (req, res) {
+  spotifyApi.getArtist(req.params.artistId)
+  .then(function(resultsArtist) {
+    res.send(resultsArtist.body);
+  })
+});
 
-app.get('/spotify/search/track/:trackName/:artistName', function (req, res) {
+app.get('/spotify/search/track/:artistName/:trackName', function (req, res) {
   spotifyApi.searchTracks('track:'+req.params.trackName+' artist:'+req.params.artistName+'')
-    .then(function(results) {
-      console.log(results.body.tracks);
-      res.send(results.body.tracks.items[0]);
+    .then(function(resultsTrack) {
+      if (resultsTrack.body.tracks.items.length > 0) {
+        res.send(resultsTrack.body.tracks.items[0]);
+      } else {
+        res.send(JSON.stringify(genericError()));
+      }
+      
     }, function(err) {
-      console.log(err);
-      res.send(genericError);
+      res.send(JSON.stringify(genericError()));
     });
 });
 
@@ -103,8 +149,8 @@ app.get('/spotify/save-playlist', function (req, res) {
 	// Create a private playlist
 	const playlistName = req.query.playlistName;
 	const userName = '1167004262';
-	const tracks = req.body.tracks;
-
+	// const tracks = req.body.tracks;
+  const tracks = [];
 	const addToplaylist = (playlistId) => {
 		spotifyApi.addTracksToPlaylist(
 			userName,
