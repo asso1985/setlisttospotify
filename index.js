@@ -168,6 +168,7 @@ app.get('/spotify/artist/:artistId', function (req, res) {
 });
 
 app.get('/spotify/search/track/:artistName/:trackName', function (req, res) {
+  console.log(req.headers.authorization);
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     spotifyApi.clientCredentialsGrant()
