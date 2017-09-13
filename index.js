@@ -66,9 +66,11 @@ app.get('/auth/spotify/callback', function(req, res){
       spotifyApi.setAccessToken(data.body['access_token']);
       spotifyApi.setRefreshToken(data.body['refresh_token']);
 
+      const expiry = Math.floor(Date.now() / 1000) + data.body['expires_in'];
+
       spotifyApi.getMe()
         .then(function(dataMe) {
-          res.redirect(BASE_FRONT_URL + '/#/auth/spotify?token=' + data.body['access_token'] + '&expires_in='+data.body['expires_in']+ '&userId='+dataMe.body.id);
+          res.redirect(BASE_FRONT_URL + '/#/auth/spotify?token=' + data.body['access_token'] + '&expiry='+expiry+ '&userId='+dataMe.body.id);
         }, function(err) {
           console.log('Something went wrong!', err);
         });
