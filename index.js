@@ -9,11 +9,11 @@ const app = express();
 const bodyParser = require('body-parser');
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
-const BASE_URL = 'https://api-setlist-to-spotify.herokuapp.com';
-// const BASE_URL = 'http://localhost:3000';
+// const BASE_URL = 'https://api-setlist-to-spotify.herokuapp.com';
+const BASE_URL = 'http://localhost:3000';
 
-const BASE_FRONT_URL = 'https://frontend-setlist-to-spotify.herokuapp.com';
-// const BASE_FRONT_URL = 'http://localhost:8080';
+// const BASE_FRONT_URL = 'https://frontend-setlist-to-spotify.herokuapp.com';
+const BASE_FRONT_URL = 'http://localhost:8080';
 
 let TOKEN = null;
 
@@ -102,6 +102,7 @@ app.get('/auth/spotify/callback', function(req, res){
     const code = req.query.code;
     spotifyApi.authorizationCodeGrant(code)
     .then(function(data){
+      console.log(data.body);
       console.log('The token expires in ' + data.body['expires_in']);
       console.log('The access token is ' + data.body['access_token']);
       console.log('The refresh token is ' + data.body['refresh_token']);
@@ -169,7 +170,6 @@ app.get('/spotify/artist/:artistId', function (req, res) {
 });
 
 app.get('/spotify/search/track/:artistName/:trackName', function (req, res) {
-  console.log(req.headers);
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     spotifyApi.clientCredentialsGrant()
