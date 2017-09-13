@@ -177,7 +177,7 @@ app.get('/spotify/artist/:artistId', function (req, res) {
 });
 
 app.get('/spotify/search/track/:artistName/:trackName', function (req, res) {
-  console.log(req.headers.authorization);
+  console.log(req.headers);
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     spotifyApi.clientCredentialsGrant()
@@ -213,13 +213,13 @@ app.get('/spotify/search/track/:artistName/:trackName', function (req, res) {
 });
 
 app.post('/spotify/save-playlist', function (req, res) {
+  console.log(req.body);
   const userId = req.body.userId;
   const playlistName = req.body.playlistName;
   const tracks = req.body.tracks;
   const authHeader = req.headers.authorization;
 
   console.log('userId', userId);
-  console.log('TOKEN', TOKEN);
 
   const addToplaylist = (playlistId) => {
     spotifyApi.addTracksToPlaylist(
@@ -248,7 +248,7 @@ app.post('/spotify/save-playlist', function (req, res) {
         console.log('Something went wrong creating playlist!', err);
       });
   } else {
-    res.send({respondStatus: 403, success: 'KO', message: 'Not authorized'})
+    res.send({responseStatus: 403, success: 'KO', message: 'Not authorized'})
   }
 
 });
