@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const setlistfm = require('setlistfm-js');
 const SpotifyWebApi = require('spotify-web-api-node');
-const passport = require('passport');
 const SpotifyStrategy = require('passport-spotify').Strategy;
 const _ = require('lodash');
 const app = express();
@@ -22,8 +21,6 @@ app.use(require('express-session')({
   resave: true,
   saveUninitialized: true
 }));
-app.use(passport.initialize());
-app.use(passport.session());
 
 const setlistfmClient = new setlistfm({
   key: "8dba8e27-1c18-41aa-890c-81cb0111fe1e",
@@ -46,73 +43,36 @@ const genericError = () => {
 
 let expires_in = '';
 
-passport.use(new SpotifyStrategy({
-    clientID: '308232bf7c424d9e9761c63df9cba02c',
-    clientSecret: '8aa3de7ee0d344d795206275626a92a5',
-    callbackURL: BASE_URL + "/auth/spotify/callback"
-  },
-  function(accessToken, refreshToken, profile, done) {
-    spotifyApi.setAccessToken(accessToken);
-    spotifyApi.setRefreshToken(refreshToken);
-    process.nextTick(function () {
-      const data = {
-        profile : profile,
-        accessToken: accessToken,
-        refreshToken: refreshToken
-      }
-      return done(null, data);
-    });
-  }
-));
-
-/*passport.serializeUser(function(user, done) {
-  done(null, user);
-});
-
-passport.deserializeUser(function(obj, done) {
-  done(null, obj);
-});*/
-
 app.use(cors());
 
-
-/*app.get('/auth/spotify',
-  passport.authenticate('spotify', {scope: ['playlist-modify-private', 'user-read-private'], showDialog: true}),
-  function(req, res){});*/
-
 app.get('/auth/spotify', function(req, res){
-  const scopes = ['playlist-modify-private', 'user-read-private'];
+  const scopes = ['user-read-private', 'playlist-modify-private', 'user-read-email'];
   const state = 'IT';
   const authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
   res.redirect(authorizeURL);
 })
-
-/*app.get('/auth/spotify/callback',
-  passport.authenticate('spotify', {scope: ['playlist-modify-private', 'user-read-private'], showDialog: true}),
-  function(req, res){
-    console.log(req.user);
-    spotifyApi.setAccessToken(req.user.accessToken);
-    spotifyApi.setRefreshToken(req.user.refreshToken);
-    res.redirect(BASE_FRONT_URL + '/#/auth/spotify?token='+req.user.accessToken);
-  });
-*/
 
 app.get('/auth/spotify/callback', function(req, res){
     console.log('code', req.query.code);
     const code = req.query.code;
     spotifyApi.authorizationCodeGrant(code)
     .then(function(data){
-      console.log(data.body);
+      console.log(data);
       console.log('The token expires in ' + data.body['expires_in']);
       console.log('The access token is ' + data.body['access_token']);
       console.log('The refresh token is ' + data.body['refresh_token']);
 
-      TOKEN = data.body['access_token'];
-
       // Set the access token on the API object to use it in later calls
       spotifyApi.setAccessToken(data.body['access_token']);
       spotifyApi.setRefreshToken(data.body['refresh_token']);
-      res.redirect(BASE_FRONT_URL + '/#/auth/spotify?token=' + data.body['access_token']);
+
+      spotifyApi.getMe()
+        .then(function(dataMe) {
+          res.redirect(BASE_FRONT_URL + '/#/auth/spotify?token=' + data.body['access_token'] + '&expires_in='+data.body['expires_in']+ '&userId='+dataMe.body.id);
+        }, function(err) {
+          console.log('Something went wrong!', err);
+        });
+      
     })
   });
 
