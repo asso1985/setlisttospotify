@@ -10,10 +10,10 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 const BASE_URL = 'https://api-setlist-to-spotify.herokuapp.com';
-// const BASE_URL = 'http://localhost:3000';
+//const BASE_URL = 'http://localhost:3000';
 
 const BASE_FRONT_URL = 'https://frontend-setlist-to-spotify.herokuapp.com';
-// const BASE_FRONT_URL = 'http://localhost:8080';
+//const BASE_FRONT_URL = 'http://localhost:8080';
 
 app.use(require('express-session')({
   secret: 'keyboard cat',
@@ -43,16 +43,6 @@ const genericError = () => {
 };
 
 let expires_in = '';
-
-spotifyApi.clientCredentialsGrant()
-  .then(function(data) {
-    expires_in = data.body['expires_in'];
-    // Save the access token so that it's used in future calls
-    spotifyApi.setAccessToken(data.body['access_token']);
-
-  }, function(err) {
-    console.log('Something went wrong when retrieving an access token', err.message);
-  });
 
 passport.use(new SpotifyStrategy({
     clientID: '308232bf7c424d9e9761c63df9cba02c',
@@ -124,24 +114,34 @@ app.get('/setlist/search/:artistId', function (req, res) {
 });
 
 app.get('/spotify/artist/:artistId', function (req, res) {
-  spotifyApi.getArtist(req.params.artistId)
-  .then(function(resultsArtist) {
-    res.send(resultsArtist.body);
-  })
+spotifyApi.clientCredentialsGrant()
+  .then(function(data) {
+    spotifyApi.setAccessToken(data.body['access_token']);
+    spotifyApi.getArtist(req.params.artistId)
+    .then(function(resultsArtist) {
+      res.send(resultsArtist.body);
+    })
+  }, function(err) {
+    console.log('Something went wrong when retrieving an access token', err.message);
+  });
 });
 
 app.get('/spotify/search/track/:artistName/:trackName', function (req, res) {
-  spotifyApi.searchTracks('track:'+req.params.trackName+' artist:'+req.params.artistName+'')
-    .then(function(resultsTrack) {
-      if (resultsTrack.body.tracks.items.length > 0) {
-        res.send(resultsTrack.body.tracks.items[0]);
-      } else {
-        res.send(JSON.stringify(genericError()));
-      }
-      
-    }, function(err) {
-      res.send(JSON.stringify(genericError()));
-    });
+  spotifyApi.clientCredentialsGrant()
+    .then(function(data) {
+      spotifyApi.setAccessToken(data.body['access_token']);
+      spotifyApi.searchTracks('track:'+req.params.trackName+' artist:'+req.params.artistName+'')
+        .then(function(resultsTrack) {
+          if (resultsTrack.body.tracks.items.length > 0) {
+            res.send(resultsTrack.body.tracks.items[0]);
+          } else {
+            res.send(JSON.stringify(genericError()));
+          }
+          
+        }, function(err) {
+          res.send(JSON.stringify(genericError()));
+        });
+  })
 });
 
 app.post('/spotify/save-playlist', function (req, res) {
