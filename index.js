@@ -10,7 +10,7 @@ app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 const BASE_URL = 'http://api.setlist2spotify.com';
 // const BASE_URL = 'https://api-setlist-to-spotify.herokuapp.com';
-// const BASE_URL = 'http://localhost:3000';
+// const BASE_URL = 'http://localhost:4000';
 
 const BASE_FRONT_URL = 'http://www.setlist2spotify.com';
 // const BASE_FRONT_URL = 'https://frontend-setlist-to-spotify.herokuapp.com';
@@ -86,7 +86,8 @@ app.get('/setlist/artist/:artistName', function (req, res) {
     artistName: req.params.artistName
   })
   .then(function(results) {
-    const list = _.filter(results.artist, function(a) { return a.tmid; });
+    const list = _.orderBy(results.artist, 'tmid', 'asc');
+    // const list = _.filter(results.artist, function(a) { return a.tmid; });
     results.artist = list;
     res.send(results);
   })
@@ -169,13 +170,10 @@ app.get('/spotify/search/track/:artistName/:trackName', function (req, res) {
 });
 
 app.post('/spotify/save-playlist', function (req, res) {
-  console.log(req.body);
   const userId = req.body.userId;
   const playlistName = req.body.playlistName;
   const tracks = req.body.tracks;
   const authHeader = req.headers.authorization;
-
-  console.log('userId', userId);
 
   const addToplaylist = (playlistId) => {
     spotifyApi.addTracksToPlaylist(
@@ -209,6 +207,6 @@ app.post('/spotify/save-playlist', function (req, res) {
 
 });
 
-app.listen(process.env.PORT || 3000, function(){
-  console.log('Example app listening on port 3000!')
+app.listen(process.env.PORT || 4000, function(){
+  console.log('Example app listening on port 4000!')
 })
