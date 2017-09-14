@@ -8,10 +8,12 @@ const app = express();
 const bodyParser = require('body-parser');
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
-const BASE_URL = 'https://api-setlist-to-spotify.herokuapp.com';
+const BASE_URL = 'http://api.setlist2spotify.com';
+// const BASE_URL = 'https://api-setlist-to-spotify.herokuapp.com';
 // const BASE_URL = 'http://localhost:3000';
 
-const BASE_FRONT_URL = 'https://frontend-setlist-to-spotify.herokuapp.com';
+const BASE_FRONT_URL = 'http://www.setlist2spotify.com';
+// const BASE_FRONT_URL = 'https://frontend-setlist-to-spotify.herokuapp.com';
 // const BASE_FRONT_URL = 'http://localhost:8080';
 
 let TOKEN = null;
