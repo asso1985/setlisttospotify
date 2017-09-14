@@ -55,7 +55,6 @@ app.get('/auth/spotify', function(req, res){
 })
 
 app.get('/auth/spotify/callback', function(req, res){
-    console.log('code', req.query.code);
     const code = req.query.code;
     spotifyApi.authorizationCodeGrant(code)
     .then(function(data){
@@ -98,10 +97,10 @@ app.get('/setlist/artist/:artistName', function (req, res) {
   });
 });
 
-
-app.get('/setlist/search/:artistId', function (req, res) {
+app.get('/setlist/search/:artistId/:page', function (req, res) {
+  const page = req.params.page || 1;
   setlistfmClient.getArtistSetlists(req.params.artistId, {
-    p: 1
+    p: page
   })
   .then(function(results) {
     res.send(results);
