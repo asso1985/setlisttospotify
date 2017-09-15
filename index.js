@@ -6,24 +6,13 @@ const SpotifyStrategy = require('passport-spotify').Strategy;
 const _ = require('lodash');
 const app = express();
 const bodyParser = require('body-parser');
-app.use(bodyParser.json()); // support json encoded bodies
-app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
+const config = require('config')
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-const BASE_URL = 'http://api.setlist2spotify.com';
-// const BASE_URL = 'https://api-setlist-to-spotify.herokuapp.com';
-// const BASE_URL = 'http://localhost:4000';
+const BASE_URL = config.get('BASE_URL');
 
-const BASE_FRONT_URL = 'http://www.setlist2spotify.com';
-// const BASE_FRONT_URL = 'https://frontend-setlist-to-spotify.herokuapp.com';
-// const BASE_FRONT_URL = 'http://localhost:8080';
-
-let TOKEN = null;
-
-app.use(require('express-session')({
-  secret: 'keyboard cat',
-  resave: true,
-  saveUninitialized: true
-}));
+const BASE_FRONT_URL = config.get('BASE_FRONT_URL');
 
 const setlistfmClient = new setlistfm({
   key: "8dba8e27-1c18-41aa-890c-81cb0111fe1e",
@@ -43,8 +32,6 @@ const genericError = () => {
     message: 'Sorry'
   }
 };
-
-let expires_in = '';
 
 app.use(cors());
 
