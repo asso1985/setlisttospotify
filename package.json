@@ -27,6 +27,7 @@
     "cors": "^2.8.4",
     "express": "^4.15.4",
     "express-session": "^1.15.5",
+    "fastify": "^0.27.0",
     "lodash": "^4.17.4",
     "passport": "^0.4.0",
     "passport-spotify": "^0.3.1",

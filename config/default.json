@@ -1,4 +1,21 @@
 {
-	"BASE_URL": "http://localhost:4000",
-	"BASE_FRONT_URL": "http://localhost:8080"
+  "frontendUrl": "http://localhost:8080",
+  "listeningPort": 4000,
+  "logLevel": "debug",
+  "setlistfm": {
+    "key": "8dba8e27-1c18-41aa-890c-81cb0111fe1e",
+    "format": "json",
+    "language": "en"
+  },
+  "spotify": {
+    "clientConfig": {
+      "clientId": "308232bf7c424d9e9761c63df9cba02c",
+      "clientSecret": "8aa3de7ee0d344d795206275626a92a5",
+      "redirectUri": "http://localhost:4000/auth/spotify/callback"
+    },
+    "authConfig": {
+      "scope": ["user-read-private", "playlist-modify-private", "user-read-email"],
+      "state": "IT"
+    }
+  }
 }
