@@ -1,4 +1,8 @@
 {
-	"BASE_URL": "http://api.setlist2spotify.com",
-	"BASE_FRONT_URL": "http://www.setlist2spotify.com"
+	"frontendUrl": "http://www.setlist2spotify.com",
+  "spotify": {
+    "clientConfig": {
+      "redirectUri": "http://api.setlist2spotify.com/auth/spotify/callback"
+    }
+  }
 }
